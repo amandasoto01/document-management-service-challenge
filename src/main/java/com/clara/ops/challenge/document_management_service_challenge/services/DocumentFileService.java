@@ -1,6 +1,9 @@
 package com.clara.ops.challenge.document_management_service_challenge.services;
 
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
+import com.clara.ops.challenge.document_management_service_challenge.entities.Document;
+import com.clara.ops.challenge.document_management_service_challenge.exceptions.InvalidDocumentIdException;
+import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +15,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentUploadService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DocumentUploadService.class);
+public class DocumentFileService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DocumentFileService.class);
 
   @Autowired private final MinioService minioService;
   @Autowired private final DocumentService documentService;
+  @Autowired private final DocumentRepository documentRepository;
 
   public String uploadAndPersist(DocumentUploadRequest documentRequest, MultipartFile file)
       throws ExecutionException, InterruptedException {
@@ -44,5 +48,16 @@ public class DocumentUploadService {
                 });
 
     return cf.get();
+  }
+
+  public String getDownloadUrl(Long documentId) {
+    Document document =
+        documentRepository
+            .findById(documentId)
+            .orElseThrow(
+                () ->
+                    new InvalidDocumentIdException(
+                        "Document ID not found please enter a valid id"));
+    return minioService.getDownloadUrl(document.getFilePath());
   }
 }

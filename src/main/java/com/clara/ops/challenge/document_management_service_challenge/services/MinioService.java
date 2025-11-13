@@ -1,10 +1,9 @@
 package com.clara.ops.challenge.document_management_service_challenge.services;
 
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
+import io.minio.errors.*;
+import io.minio.http.Method;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +51,22 @@ public class MinioService {
     } catch (Exception e) {
       LOGGER.error("There was an error updating the file {}", e.getMessage());
       return CompletableFuture.failedFuture(e);
+    }
+  }
+
+  public String getDownloadUrl(String fileName) {
+    LOGGER.info("MinioService: getDownloadUrl method, fileName {}", fileName);
+    try {
+      return minioClient.getPresignedObjectUrl(
+          GetPresignedObjectUrlArgs.builder()
+              .bucket(bucketName)
+              .object(fileName)
+              .method(Method.GET)
+              .expiry(300)
+              .build());
+    } catch (Exception e) {
+      LOGGER.info("Error getting download link");
+      throw new RuntimeException(e);
     }
   }
 

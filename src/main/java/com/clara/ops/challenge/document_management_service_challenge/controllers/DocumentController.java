@@ -2,8 +2,8 @@ package com.clara.ops.challenge.document_management_service_challenge.controller
 
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentResponse;
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
+import com.clara.ops.challenge.document_management_service_challenge.services.DocumentFileService;
 import com.clara.ops.challenge.document_management_service_challenge.services.DocumentService;
-import com.clara.ops.challenge.document_management_service_challenge.services.DocumentUploadService;
 import com.clara.ops.challenge.document_management_service_challenge.services.MinioService;
 import com.clara.ops.challenge.document_management_service_challenge.utils.FileUtils;
 import jakarta.validation.Valid;
@@ -33,17 +33,14 @@ public class DocumentController {
 
   @Autowired private final DocumentService documentService;
 
-  @Autowired private final DocumentUploadService documentUploadService;
+  @Autowired private final DocumentFileService documentUploadService;
 
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<String> uploadDocument(
       @RequestPart("metadata") @Valid DocumentUploadRequest documentRequest,
       @RequestPart("file") @NotNull(message = "file is required") MultipartFile file)
       throws ExecutionException, InterruptedException {
-    LOGGER.info("Upload endpoint called...");
-    LOGGER.info("metadata: {}", documentRequest.getDocumentName());
-    LOGGER.info("file: {}", file.getOriginalFilename());
-    LOGGER.info("content type: {}", file.getContentType());
+    LOGGER.info("Document controller ... upload document");
 
     FileUtils.validateFile(file);
     return ResponseEntity.ok(documentUploadService.uploadAndPersist(documentRequest, file));
@@ -55,8 +52,14 @@ public class DocumentController {
       @RequestParam(required = false) String documentName,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
-    LOGGER.info("Get documents controller");
+    LOGGER.info("Document controller .. get documents");
     return ResponseEntity.ok(
         documentService.getFilteredDocuments(userName, documentName, page, size));
+  }
+
+  @GetMapping(path = "/download/{documentId}")
+  public ResponseEntity<String> getDownloadUrl(@PathVariable Long documentId) {
+    LOGGER.info("Document controller ... get download url");
+    return ResponseEntity.ok(documentUploadService.getDownloadUrl(documentId));
   }
 }
