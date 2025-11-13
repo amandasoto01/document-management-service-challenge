@@ -29,6 +29,7 @@ public class Document {
   @Column(name = "document_name", nullable = false)
   private String documentName;
 
+  @Column(name = "tags")
   private String[] tags;
 
   @Column(name = "file_path", nullable = false)

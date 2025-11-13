@@ -1,5 +1,6 @@
 package com.clara.ops.challenge.document_management_service_challenge.controllers;
 
+import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentResponse;
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
 import com.clara.ops.challenge.document_management_service_challenge.services.DocumentService;
 import com.clara.ops.challenge.document_management_service_challenge.services.DocumentUploadService;
@@ -12,13 +13,11 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -48,5 +47,16 @@ public class DocumentController {
 
     FileUtils.validateFile(file);
     return ResponseEntity.ok(documentUploadService.uploadAndPersist(documentRequest, file));
+  }
+
+  @GetMapping(path = "filter")
+  public ResponseEntity<Page<DocumentResponse>> getDocuments(
+      @RequestParam(required = false) String userName,
+      @RequestParam(required = false) String documentName,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
+    LOGGER.info("Get documents controller");
+    return ResponseEntity.ok(
+        documentService.getFilteredDocuments(userName, documentName, page, size));
   }
 }

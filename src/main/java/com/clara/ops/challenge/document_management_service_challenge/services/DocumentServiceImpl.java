@@ -1,14 +1,22 @@
 package com.clara.ops.challenge.document_management_service_challenge.services;
 
+import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentResponse;
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
 import com.clara.ops.challenge.document_management_service_challenge.entities.Document;
+import com.clara.ops.challenge.document_management_service_challenge.mappers.DocumentMapper;
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
+import com.clara.ops.challenge.document_management_service_challenge.specifications.DocumentSpecification;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +29,7 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public Long uploadDocument(
       DocumentUploadRequest documentUploadRequest, MultipartFile file, String fileUrl) {
-    LOGGER.info("Uploading document service...");
+    LOGGER.info("DocumentService: Uploading document service...");
     Document document = createDocument(documentUploadRequest, file, fileUrl);
     Optional<Document> documentAlreadySaved =
         documentRepository.findByUserNameAndDocumentName(
@@ -50,6 +58,17 @@ public class DocumentServiceImpl implements DocumentService {
     }
     LOGGER.info("Values was inserted successfully with id {}", documentSaved.getId());
     return documentSaved.getId();
+  }
+
+  @Override
+  public Page<DocumentResponse> getFilteredDocuments(
+      String userName, String documentName, int page, int size) {
+    LOGGER.info("DocumentService: filtering documents ");
+
+    Specification<Document> spec = DocumentSpecification.withFilters(userName, documentName);
+    Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return documentRepository.findAll(spec, pageable).map(DocumentMapper::documentEntityToDTO);
   }
 
   private Document createDocument(DocumentUploadRequest dto, MultipartFile file, String fileUrl) {

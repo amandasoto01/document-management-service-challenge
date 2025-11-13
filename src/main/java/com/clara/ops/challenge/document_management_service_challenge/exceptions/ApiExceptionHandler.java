@@ -53,4 +53,11 @@ public class ApiExceptionHandler {
     LOGGER.error(ex.getMessage());
     return ResponseEntity.badRequest().body(new ApiError(ex.getMessage()));
   }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<ApiError> handleIllegalArgumentException(InvalidFormatException ex) {
+    LOGGER.error(ex.getMessage());
+    return ResponseEntity.badRequest().body(new ApiError(ex.getMessage()));
+  }
 }
