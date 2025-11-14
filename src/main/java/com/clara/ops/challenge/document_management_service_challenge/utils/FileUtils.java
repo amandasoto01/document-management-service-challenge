@@ -15,7 +15,7 @@ public class FileUtils {
 
   public static void validateFile(MultipartFile file) {
     LOGGER.info("Validating file");
-    if (file.isEmpty()) {
+    if (file == null || file.isEmpty()) {
       throw new InvalidFormatException("File is required");
     }
 
