@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -55,12 +56,12 @@ public class DocumentController {
   public ResponseEntity<Page<DocumentResponse>> getDocuments(
       @RequestParam(required = false) String userName,
       @RequestParam(required = false) String documentName,
-      @RequestParam(required = false) String[] tags,
+      @RequestParam(required = false) List<String> tags,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     LOGGER.info("Document controller .. get documents");
     return ResponseEntity.ok(
-        documentService.getFilteredDocuments(userName, documentName, page, size));
+        documentService.getFilteredDocuments(userName, documentName, tags, page, size));
   }
 
   @Operation(

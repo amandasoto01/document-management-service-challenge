@@ -8,6 +8,7 @@ import com.clara.ops.challenge.document_management_service_challenge.mappers.Doc
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
 import com.clara.ops.challenge.document_management_service_challenge.specifications.DocumentSpecification;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class DocumentService {
 
   public Long saveMetadataDocument(
       DocumentRequest documentRequest, MultipartFile file, String fileUrl) {
-    LOGGER.info("DocumentService: Uploading document service...");
+    LOGGER.info("DocumentService: Uploading document service...{}", documentRequest);
     Document document = createDocument(documentRequest, file, fileUrl);
     Optional<Document> documentAlreadySaved =
         documentRepository.findByUserNameAndDocumentName(
@@ -65,10 +66,10 @@ public class DocumentService {
   }
 
   public Page<DocumentResponse> getFilteredDocuments(
-      String userName, String documentName, int page, int size) {
+      String userName, String documentName, List<String> tags, int page, int size) {
     LOGGER.info("DocumentService: filtering documents ");
 
-    Specification<Document> spec = DocumentSpecification.withFilters(userName, documentName);
+    Specification<Document> spec = DocumentSpecification.withFilters(userName, documentName, tags);
     Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
     Pageable pageable = PageRequest.of(page, size, sort);
     return documentRepository.findAll(spec, pageable).map(DocumentMapper::documentEntityToDTO);

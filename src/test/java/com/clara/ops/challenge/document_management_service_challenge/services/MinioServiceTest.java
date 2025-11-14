@@ -8,6 +8,7 @@ import com.clara.ops.challenge.document_management_service_challenge.dtos.Docume
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class MinioServiceTest {
 
   @Test
   void uploadDocument_success_shouldCallMinioPutObject() throws Exception {
-    DocumentRequest request = new DocumentRequest("doc1", "user1", new String[] {"tag1"});
+    DocumentRequest request = new DocumentRequest("doc1", "user1", List.of("tag1"));
 
     MockMultipartFile file =
         new MockMultipartFile("file", "test.pdf", "application/pdf", "Test Content".getBytes());
@@ -44,7 +45,7 @@ class MinioServiceTest {
 
   @Test
   void uploadDocument_whenMinioThrows_shouldPropagateOrWrapException() throws Exception {
-    DocumentRequest request = new DocumentRequest("doc1", "user1", new String[] {"tag1"});
+    DocumentRequest request = new DocumentRequest("doc1", "user1", List.of("tag1"));
     MockMultipartFile file =
         new MockMultipartFile("file", "test.pdf", "application/pdf", "Test Content".getBytes());
 

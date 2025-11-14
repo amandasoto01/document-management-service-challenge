@@ -7,6 +7,7 @@ import com.clara.ops.challenge.document_management_service_challenge.dtos.Docume
 import com.clara.ops.challenge.document_management_service_challenge.entities.Document;
 import com.clara.ops.challenge.document_management_service_challenge.exceptions.InvalidDocumentIdException;
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class DocumentFileServiceTest {
 
   @Test
   void testUploadDocument_success() throws Exception {
-    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", List.of("tag1"));
     MultipartFile file = mock(MultipartFile.class);
 
     String expectedFileName = "File uploaded successfully with id 1";
@@ -48,7 +49,7 @@ class DocumentFileServiceTest {
 
   @Test
   void testUploadDocument_expectedException_failure() {
-    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", List.of("tag1"));
     MultipartFile file = mock(MultipartFile.class);
 
     when(minioService.uploadDocument(documentRequest, file))
@@ -70,7 +71,7 @@ class DocumentFileServiceTest {
             .documentName("doc1")
             .userName("user1")
             .filePath("http://example.com/download/user1/doc1")
-            .tags(new String[] {"tag1"})
+            .tags(List.of("tag1"))
             .build();
     when(documentRepository.findById(anyLong())).thenReturn(Optional.ofNullable(document));
     assertNotNull(document);

@@ -11,6 +11,7 @@ import com.clara.ops.challenge.document_management_service_challenge.entities.Do
 import com.clara.ops.challenge.document_management_service_challenge.exceptions.DatabaseSaveException;
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,7 @@ class DocumentServiceTest {
 
   @Test
   void testSaveMetadataDocument_newDocument() {
-    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", List.of("tag1"));
     MultipartFile file = mock(MultipartFile.class);
     when(file.getSize()).thenReturn(1024L);
     when(file.getContentType()).thenReturn("application/pdf");
@@ -42,7 +43,7 @@ class DocumentServiceTest {
             .id(1L)
             .documentName("doc1")
             .userName("user1")
-            .tags(new String[] {"tag1"})
+            .tags(List.of("tag1"))
             .filePath("fileUrl")
             .fileSize(1024L)
             .fileType("application/pdf")
@@ -61,7 +62,7 @@ class DocumentServiceTest {
   @Test
   void testSaveMetadataDocument_existingDocument() {
     // Arrange
-    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", List.of("tag1"));
     MultipartFile file = mock(MultipartFile.class);
     when(file.getSize()).thenReturn(1024L);
     when(file.getContentType()).thenReturn("application/pdf");
@@ -71,7 +72,7 @@ class DocumentServiceTest {
             .id(1L)
             .documentName("doc1")
             .userName("user1")
-            .tags(new String[] {"tag1"})
+            .tags(List.of("tag1"))
             .filePath("oldPath")
             .fileSize(512L)
             .fileType("text/plain")
@@ -89,7 +90,7 @@ class DocumentServiceTest {
 
   @Test
   void testSaveMetadataDocument_throwsDatabaseSaveException() {
-    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("doc1", "user1", List.of("tag1"));
     MultipartFile file = mock(MultipartFile.class);
     when(file.getSize()).thenReturn(1024L);
     when(file.getContentType()).thenReturn("application/pdf");
@@ -108,14 +109,15 @@ class DocumentServiceTest {
             .id(1L)
             .documentName("doc1")
             .userName("user1")
-            .tags(new String[] {"tag1"})
+            .tags(List.of("tag1"))
             .build();
-
+    List<String> tags = List.of("tag1");
     Page<Document> documentPage = new PageImpl<>(Collections.singletonList(document));
     when(documentRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(documentPage);
 
-    Page<DocumentResponse> result = documentService.getFilteredDocuments("user1", "doc1", 0, 10);
+    Page<DocumentResponse> result =
+        documentService.getFilteredDocuments("user1", "doc1", tags, 0, 10);
 
     assertNotNull(result);
     assertEquals(1, result.getTotalElements());

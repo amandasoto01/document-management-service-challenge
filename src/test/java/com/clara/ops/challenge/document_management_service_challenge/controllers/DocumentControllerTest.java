@@ -11,6 +11,8 @@ import com.clara.ops.challenge.document_management_service_challenge.exceptions.
 import com.clara.ops.challenge.document_management_service_challenge.exceptions.InvalidFormatException;
 import com.clara.ops.challenge.document_management_service_challenge.services.DocumentFileService;
 import com.clara.ops.challenge.document_management_service_challenge.services.DocumentService;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,7 @@ class DocumentControllerTest {
         DocumentRequest.builder()
             .userName("user1")
             .documentName("doc1")
-            .tags(new String[] {"tag1"})
+            .tags(List.of("tag1"))
             .build();
   }
 
@@ -71,7 +73,7 @@ class DocumentControllerTest {
 
   @Test
   void testUploadDocument_fileSizeLimitException_error() {
-    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", new String[] {"tag1"});
+    DocumentRequest documentRequest = new DocumentRequest("user1", "doc1", List.of("tag1"));
     MultipartFile file =
         new MockMultipartFile("file", "test.pdf", "application/pdf", "Test Content".getBytes()) {
           @Override
@@ -89,12 +91,13 @@ class DocumentControllerTest {
   void testGetDocuments_return200() {
     String userName = "user1";
     String documentName = "doc1";
-    String[] tags = {"tag1"};
+    List<String> tags = new ArrayList<>();
+    tags.add("tag1");
     int page = 0;
     int size = 10;
 
     Page<DocumentResponse> mockPage = mock(Page.class);
-    when(documentService.getFilteredDocuments(userName, documentName, page, size))
+    when(documentService.getFilteredDocuments(userName, documentName, tags, page, size))
         .thenReturn(mockPage);
 
     ResponseEntity<Page<DocumentResponse>> response =
@@ -103,18 +106,19 @@ class DocumentControllerTest {
     assertNotNull(response);
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(mockPage, response.getBody());
-    verify(documentService, times(1)).getFilteredDocuments(userName, documentName, page, size);
+    verify(documentService, times(1))
+        .getFilteredDocuments(userName, documentName, tags, page, size);
   }
 
   @Test
   void testGetDocuments_returnError() {
     String userName = "user1";
     String documentName = "doc1";
-    String[] tags = {"tag1"};
+    List<String> tags = List.of("tag1");
     int page = 0;
     int size = 10;
 
-    when(documentService.getFilteredDocuments(userName, documentName, page, size))
+    when(documentService.getFilteredDocuments(userName, documentName, tags, page, size))
         .thenThrow(new RuntimeException("Error fetching documents"));
 
     RuntimeException exception =
@@ -122,7 +126,8 @@ class DocumentControllerTest {
             RuntimeException.class,
             () -> documentController.getDocuments(userName, documentName, tags, page, size));
     assertEquals("Error fetching documents", exception.getMessage());
-    verify(documentService, times(1)).getFilteredDocuments(userName, documentName, page, size);
+    verify(documentService, times(1))
+        .getFilteredDocuments(userName, documentName, tags, page, size);
   }
 
   @Test

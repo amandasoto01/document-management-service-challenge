@@ -2,6 +2,7 @@ package com.clara.ops.challenge.document_management_service_challenge.dtos;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +19,5 @@ public class DocumentRequest {
 
   private String documentName;
 
-  private String[] tags;
+  private List<String> tags;
 }

@@ -1,12 +1,8 @@
 package com.clara.ops.challenge.document_management_service_challenge.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.*;
 
 @Entity
@@ -29,8 +25,13 @@ public class Document {
   @Column(name = "document_name", nullable = false)
   private String documentName;
 
-  @Column(name = "tags")
-  private String[] tags;
+  @ElementCollection
+  @CollectionTable(
+      name = "document_tags",
+      schema = "document_schema",
+      joinColumns = @JoinColumn(name = "document_id"))
+  @Column(name = "tag")
+  private List<String> tags;
 
   @Column(name = "file_path", nullable = false)
   private String filePath;
