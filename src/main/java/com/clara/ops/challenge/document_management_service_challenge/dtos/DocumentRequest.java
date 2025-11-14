@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Data
-public class DocumentUploadRequest {
+public class DocumentRequest {
 
   @NotNull(message = "User name is required") @NotBlank(message = "User name must not be blank")
   private String userName;

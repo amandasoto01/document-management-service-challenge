@@ -1,6 +1,6 @@
 package com.clara.ops.challenge.document_management_service_challenge.services;
 
-import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
+import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentRequest;
 import com.clara.ops.challenge.document_management_service_challenge.entities.Document;
 import com.clara.ops.challenge.document_management_service_challenge.exceptions.InvalidDocumentIdException;
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,13 +16,16 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class DocumentFileService {
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentFileService.class);
+  private final MinioService minioService;
+  private final DocumentService documentService;
+  private final DocumentRepository documentRepository;
 
-  @Autowired private final MinioService minioService;
-  @Autowired private final DocumentService documentService;
-  @Autowired private final DocumentRepository documentRepository;
+  public String uploadAndPersist(DocumentRequest documentRequest, MultipartFile file) {
+    LOGGER.info("DocumentFileService: uploadAndPersist method...");
 
-  public String uploadAndPersist(DocumentUploadRequest documentRequest, MultipartFile file)
-      throws ExecutionException, InterruptedException {
+    if (documentRequest.getDocumentName() == null || documentRequest.getDocumentName().isEmpty()) {
+      documentRequest.setDocumentName(file.getOriginalFilename());
+    }
 
     CompletableFuture<String> cf =
         minioService
@@ -34,23 +36,29 @@ public class DocumentFileService {
                     return "File not created";
                   }
 
-                  long id = documentService.uploadDocument(documentRequest, file, fileUrl);
-                  if (id == -1) {
-                    return "Error saving document in database";
-                  }
-
+                  long id = documentService.saveMetadataDocument(documentRequest, file, fileUrl);
                   return "File uploaded successfully with id " + id;
                 })
             .exceptionally(
                 ex -> {
                   LOGGER.error("Error uploading document", ex);
-                  return "Error uploading file";
+                  throw new RuntimeException(ex);
                 });
 
-    return cf.get();
+    try {
+      return cf.get();
+    } catch (ExecutionException e) {
+      LOGGER.error("Execution exception during upload {}", e.getMessage());
+      throw new RuntimeException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOGGER.error("Upload interrupted {}", e.getMessage());
+      throw new RuntimeException(e);
+    }
   }
 
   public String getDownloadUrl(Long documentId) {
+    LOGGER.info("DocumentFileService: get download url method...");
     Document document =
         documentRepository
             .findById(documentId)

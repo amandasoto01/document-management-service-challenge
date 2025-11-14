@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -23,11 +24,10 @@ public class ApiExceptionHandler {
   @ResponseBody
   public ResponseEntity<ApiError> handleGeneralException(HttpServletRequest request, Exception ex) {
     LOGGER.error(ex.getMessage());
-    return ResponseEntity.badRequest().body(new ApiError(ex.getMessage()));
+    return ResponseEntity.internalServerError().body(new ApiError(ex.getMessage()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ApiError> handleValidationException(
       HttpServletRequest request, MethodArgumentNotValidException ex) {
     String errors =
@@ -48,16 +48,35 @@ public class ApiExceptionHandler {
   }
 
   @ExceptionHandler(InvalidFormatException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<ApiError> handleInvalidFormatException(InvalidFormatException ex) {
     LOGGER.error(ex.getMessage());
-    return ResponseEntity.badRequest().body(new ApiError(ex.getMessage()));
+    return ResponseEntity.badRequest().body(new ApiError("Invalid format " + ex.getMessage()));
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<ApiError> handleIllegalArgumentException(InvalidFormatException ex) {
+  public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
     LOGGER.error(ex.getMessage());
-    return ResponseEntity.badRequest().body(new ApiError(ex.getMessage()));
+    return ResponseEntity.badRequest().body(new ApiError("Illegal Argument " + ex.getMessage()));
+  }
+
+  @ExceptionHandler(InvalidDocumentIdException.class)
+  public ResponseEntity<ApiError> handleInvalidDocumentException(InvalidDocumentIdException ex) {
+    LOGGER.error(ex.getMessage());
+    return ResponseEntity.badRequest().body(new ApiError("Invalid document id " + ex.getMessage()));
+  }
+
+  @ExceptionHandler(DatabaseSaveException.class)
+  public ResponseEntity<ApiError> handleDatabaseSaveException(DatabaseSaveException ex) {
+    LOGGER.error(ex.getMessage());
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ApiError("Database save error: " + ex.getMessage()));
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<ApiError> handleDataIntegrityValidationException(
+      DataIntegrityViolationException ex) {
+    LOGGER.error(ex.getMessage());
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(new ApiError("Data integrity violation: " + ex.getMessage()));
   }
 }

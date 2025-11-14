@@ -13,6 +13,9 @@ public final class DocumentMapper {
         .userName(document.getUserName())
         .documentName(document.getDocumentName())
         .tags(document.getTags())
+        .filePath(document.getFilePath())
+        .fileSize(document.getFileSize())
+        .fileType(document.getFileType())
         .createdAt(document.getCreatedAt())
         .build();
   }

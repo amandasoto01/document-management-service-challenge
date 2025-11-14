@@ -15,5 +15,8 @@ public class DocumentResponse {
   private String userName;
   private String documentName;
   private String[] tags;
+  private Long fileSize;
+  private String fileType;
+  private String filePath;
   private LocalDateTime createdAt;
 }

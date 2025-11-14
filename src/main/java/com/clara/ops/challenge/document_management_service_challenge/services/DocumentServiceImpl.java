@@ -1,8 +1,9 @@
 package com.clara.ops.challenge.document_management_service_challenge.services;
 
+import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentRequest;
 import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentResponse;
-import com.clara.ops.challenge.document_management_service_challenge.dtos.DocumentUploadRequest;
 import com.clara.ops.challenge.document_management_service_challenge.entities.Document;
+import com.clara.ops.challenge.document_management_service_challenge.exceptions.DatabaseSaveException;
 import com.clara.ops.challenge.document_management_service_challenge.mappers.DocumentMapper;
 import com.clara.ops.challenge.document_management_service_challenge.repositories.DocumentRepository;
 import com.clara.ops.challenge.document_management_service_challenge.specifications.DocumentSpecification;
@@ -11,11 +12,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,13 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentServiceImpl.class);
-  @Autowired private final DocumentRepository documentRepository;
+  private final DocumentRepository documentRepository;
 
   @Override
-  public Long uploadDocument(
-      DocumentUploadRequest documentUploadRequest, MultipartFile file, String fileUrl) {
+  public Long saveMetadataDocument(
+      DocumentRequest documentRequest, MultipartFile file, String fileUrl) {
     LOGGER.info("DocumentService: Uploading document service...");
-    Document document = createDocument(documentUploadRequest, file, fileUrl);
+    Document document = createDocument(documentRequest, file, fileUrl);
     Optional<Document> documentAlreadySaved =
         documentRepository.findByUserNameAndDocumentName(
             document.getUserName(), document.getDocumentName());
@@ -45,18 +42,20 @@ public class DocumentServiceImpl implements DocumentService {
       docExisting.setFileType(document.getFileType());
 
       documentToSave = docExisting;
-      LOGGER.info("Existing document found... updating values... ");
+      LOGGER.info("DocumentService: Existing document found... updating values... ");
     } else {
       documentToSave = document;
-      LOGGER.info("No existing document found... creating new one... ");
+      LOGGER.info("DocumentService: No existing document found... creating new one... ");
     }
 
     Document documentSaved = documentRepository.save(documentToSave);
     if (documentSaved.getId() == null) {
-      LOGGER.error("Error saving document info");
-      return -1L;
+      LOGGER.error("DocumentService: Error saving metadata info to database");
+      throw new DatabaseSaveException("Error saving document metadata");
     }
-    LOGGER.info("Values was inserted successfully with id {}", documentSaved.getId());
+
+    LOGGER.info(
+        "DocumentService: Values was inserted successfully with id {}", documentSaved.getId());
     return documentSaved.getId();
   }
 
@@ -71,7 +70,7 @@ public class DocumentServiceImpl implements DocumentService {
     return documentRepository.findAll(spec, pageable).map(DocumentMapper::documentEntityToDTO);
   }
 
-  private Document createDocument(DocumentUploadRequest dto, MultipartFile file, String fileUrl) {
+  private Document createDocument(DocumentRequest dto, MultipartFile file, String fileUrl) {
     return Document.builder()
         .documentName(dto.getDocumentName())
         .tags(dto.getTags())
