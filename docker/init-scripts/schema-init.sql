@@ -6,7 +6,7 @@ SET SCHEMA 'document_schema';
 CREATE TABLE IF NOT EXISTS documents (
     document_id SERIAL PRIMARY KEY,
     user_name VARCHAR(255) NOT NULL,
-    document_name VARCHAR(255) NOT NULL,
+    document_name VARCHAR(255) NOT NULL,a
     tag VARCHAR(255)[],
     file_path VARCHAR(512) NOT NULL,
     file_size BIGINT,

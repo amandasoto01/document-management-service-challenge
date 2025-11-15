@@ -79,7 +79,7 @@ public class MinioService {
     try {
       return minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
     } catch (Exception e) {
-      LOGGER.error("MinioService: Error checking bucket existence: " + e.getMessage());
+        LOGGER.error("MinioService: Error checking bucket existence: {}", e.getMessage());
       return false;
     }
   }
