@@ -21,9 +21,11 @@ public class DocumentSpecification {
       }
 
       if (tags != null && !tags.isEmpty()) {
+        Predicate tagsPredicate = criteriaBuilder.disjunction();
         for (String tag : tags) {
-          predicates.add(criteriaBuilder.isMember(tag, root.get("tags")));
+          tagsPredicate = criteriaBuilder.or(tagsPredicate, criteriaBuilder.isMember(tag, root.get("tags")));
         }
+        predicates.add(tagsPredicate);
       }
 
       return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
